@@ -2,75 +2,104 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Task App Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>App Pro</title>
 
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 body{
-    margin:0;
-    background:#000;
-    display:flex;
-    justify-content:center;
-    font-family:-apple-system,BlinkMacSystemFont;
+margin:0;
+background:#000;
+display:flex;
+justify-content:center;
+font-family:-apple-system;
 }
 
-/* CONTENEDOR IPHONE */
 .app{
-    width:100%;
-    max-width:414px;
-    height:100vh;
-    background:#0d0d12;
-    color:white;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+width:100%;
+max-width:414px;
+height:100vh;
+background:#0d0d12;
+color:white;
+display:flex;
+flex-direction:column;
+overflow:hidden;
 }
 
 /* HEADER */
 .header{
-    padding:20px 16px 10px;
-    font-size:22px;
-    font-weight:bold;
+padding:20px 16px 10px;
+font-size:22px;
+font-weight:700;
 }
 
 /* SEARCH */
 .search{
-    margin:0 16px;
-    padding:12px;
-    border-radius:12px;
-    border:none;
-    background:#1c1c24;
-    color:white;
+margin:0 16px;
+padding:12px;
+border-radius:12px;
+border:none;
+background:#1c1c24;
+color:white;
+outline:none;
 }
 
 /* SCREENS */
 .screen{
-    display:none;
-    flex:1;
-    overflow:hidden;
-    flex-direction:column;
+position:absolute;
+width:100%;
+height:100%;
+top:0;
+left:0;
+display:none;
+flex-direction:column;
+background:#0d0d12;
 }
-.active{
-    display:flex;
+.screen.active{
+display:flex;
+animation:fade .2s;
+}
+@keyframes fade{
+from{opacity:0;transform:translateX(10px)}
+to{opacity:1;transform:translateX(0)}
 }
 
 /* LIST */
 .list{
-    flex:1;
-    overflow-y:auto;
+flex:1;
+overflow-y:auto;
 }
 
 /* TASK */
 .task{
-    padding:14px 16px;
-    border-bottom:1px solid #1f1f25;
+padding:14px 16px;
+border-bottom:1px solid #1f1f25;
+position:relative;
+transition:.2s;
+}
+
+.task.swiping{
+transform:translateX(-80px);
+}
+
+.deleteBtn{
+position:absolute;
+right:0;
+top:0;
+height:100%;
+width:80px;
+background:red;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
 }
 
 .priority{
-    font-size:11px;
-    font-weight:bold;
+font-size:11px;
+font-weight:bold;
 }
 .alto{color:#ff4d4d}
 .medio{color:#ffb84d}
@@ -81,45 +110,63 @@ body{
 
 /* PANEL */
 .panel{
-    padding:10px 16px;
+padding:10px 16px;
+background:#0d0d12;
 }
 
 .input{
-    width:100%;
-    padding:12px;
-    margin-top:6px;
-    border-radius:12px;
-    border:none;
-    background:#1c1c24;
-    color:white;
+width:100%;
+padding:12px;
+margin-top:6px;
+border-radius:12px;
+border:none;
+background:#1c1c24;
+color:white;
+outline:none;
 }
 
 .btn{
-    margin-top:8px;
-    padding:14px;
-    width:100%;
-    border-radius:12px;
-    border:none;
-    background:#5aa9ff;
-    font-weight:bold;
+margin-top:8px;
+padding:14px;
+width:100%;
+border-radius:12px;
+border:none;
+background:#5aa9ff;
+font-weight:bold;
+transition:.15s;
 }
+.btn:active{transform:scale(0.96)}
 
 /* NAV */
 .nav{
-    height:60px;
-    background:#111;
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-    border-top:1px solid #222;
+height:60px;
+background:#111;
+display:flex;
+justify-content:space-around;
+align-items:center;
+border-top:1px solid #222;
 }
 .nav div{
-    cursor:pointer;
-    opacity:0.6;
+opacity:.5;
+font-size:20px;
 }
 .nav .active{
-    opacity:1;
+opacity:1;
 }
+
+/* MODAL */
+.modal{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:#1c1c24;
+padding:20px;
+border-radius:16px;
+display:none;
+}
+.modal.active{display:block}
+
 </style>
 </head>
 
@@ -128,45 +175,50 @@ body{
 <div class="app">
 
 <!-- TAREAS -->
-<div id="tasksScreen" class="screen active">
-    <div class="header">Tareas</div>
-    <input class="search" placeholder="Buscar..." oninput="searchTasks(this.value)">
-    <div id="taskList" class="list"></div>
+<div id="tasks" class="screen active">
+<div class="header">Tareas</div>
+<input class="search" placeholder="Buscar..." id="search">
 
-    <div class="panel">
-        <input id="title" class="input" placeholder="Título">
-        <input id="desc" class="input" placeholder="Descripción">
-        <select id="priority" class="input">
-            <option value="alto">Alta</option>
-            <option value="medio">Media</option>
-            <option value="bajo">Baja</option>
-        </select>
-        <button class="btn" onclick="addTask()">Añadir</button>
-    </div>
+<div id="taskList" class="list"></div>
+
+<div class="panel">
+<input id="title" class="input" placeholder="Título">
+<input id="desc" class="input" placeholder="Descripción">
+
+<select id="priority" class="input">
+<option value="alto">Alta</option>
+<option value="medio">Media</option>
+<option value="bajo">Baja</option>
+</select>
+
+<select id="project" class="input"></select>
+
+<button id="addBtn" class="btn">Añadir</button>
+</div>
 </div>
 
 <!-- CALENDARIO -->
-<div id="calendarScreen" class="screen">
-    <div class="header">Calendario</div>
-    <div class="list" id="calendar"></div>
+<div id="calendar" class="screen">
+<div class="header">Calendario</div>
+<div id="calendarList" class="list"></div>
 </div>
 
 <!-- PROYECTOS -->
-<div id="projectsScreen" class="screen">
-    <div class="header">Proyectos</div>
-    <div id="projectList" class="list"></div>
+<div id="projects" class="screen">
+<div class="header">Proyectos</div>
+<div id="projectList" class="list"></div>
 
-    <div class="panel">
-        <input id="projectName" class="input" placeholder="Nuevo proyecto">
-        <button class="btn" onclick="addProject()">Crear</button>
-    </div>
+<div class="panel">
+<input id="newProject" class="input" placeholder="Nuevo proyecto">
+<button id="addProjectBtn" class="btn">Crear</button>
+</div>
 </div>
 
 <!-- NAV -->
 <div class="nav">
-    <div onclick="switchTab('tasksScreen', this)" class="active">📋</div>
-    <div onclick="switchTab('calendarScreen', this)">📅</div>
-    <div onclick="switchTab('projectsScreen', this)">📦</div>
+<div data-tab="tasks" class="active">📋</div>
+<div data-tab="calendar">📅</div>
+<div data-tab="projects">📦</div>
 </div>
 
 </div>
@@ -176,113 +228,151 @@ let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
 /* NAV */
-function switchTab(id, el){
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+document.querySelectorAll(".nav div").forEach(btn=>{
+btn.addEventListener("touchstart",()=>switchTab(btn))
+btn.addEventListener("click",()=>switchTab(btn))
+})
 
-    document.querySelectorAll(".nav div").forEach(n=>n.classList.remove("active"));
-    el.classList.add("active");
+function switchTab(btn){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
+document.getElementById(btn.dataset.tab).classList.add("active")
+
+document.querySelectorAll(".nav div").forEach(n=>n.classList.remove("active"))
+btn.classList.add("active")
 }
 
 /* TASKS */
+addBtn.addEventListener("touchstart",addTask)
+addBtn.addEventListener("click",addTask)
+
 function addTask(){
-    let t = {
-        title: title.value,
-        desc: desc.value,
-        priority: priority.value,
-        date: new Date().toLocaleDateString()
-    };
-    if(!t.title) return;
+if(!title.value) return;
 
-    tasks.push(t);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    title.value=""; desc.value="";
-    renderTasks();
-    renderCalendar();
+tasks.push({
+title:title.value,
+desc:desc.value,
+priority:priority.value,
+project:project.value,
+date:new Date().toLocaleDateString()
+});
+
+save();
+title.value="";
+desc.value="";
+render();
 }
 
-function renderTasks(filter=""){
-    let list = document.getElementById("taskList");
-    list.innerHTML="";
+/* SWIPE DELETE */
+function createTaskElement(t,i){
+let div = document.createElement("div");
+div.className="task";
 
-    tasks
-    .filter(t=>t.title.toLowerCase().includes(filter.toLowerCase()))
-    .forEach((t,i)=>{
-        list.innerHTML += `
-        <div class="task" onclick="deleteTask(${i})">
-            <div class="priority ${t.priority}">${t.priority.toUpperCase()}</div>
-            <div class="title">${t.title}</div>
-            <div class="desc">${t.desc}</div>
-        </div>`;
-    });
+let startX=0;
+
+div.addEventListener("touchstart",e=>{
+startX=e.touches[0].clientX;
+});
+
+div.addEventListener("touchmove",e=>{
+let move=e.touches[0].clientX - startX;
+if(move < -50){
+div.classList.add("swiping");
+}
+});
+
+div.addEventListener("touchend",()=>{
+if(div.classList.contains("swiping")){
+tasks.splice(i,1);
+save();
+render();
+}
+});
+
+div.innerHTML=`
+<div class="priority ${t.priority}">${t.priority}</div>
+<div class="title">${t.title}</div>
+<div class="desc">${t.desc}</div>
+`;
+
+return div;
 }
 
-function deleteTask(i){
-    if(confirm("Eliminar tarea?")){
-        tasks.splice(i,1);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-        renderCalendar();
-    }
-}
-
-function searchTasks(q){
-    renderTasks(q);
+/* RENDER */
+function render(){
+let list = taskList;
+list.innerHTML="";
+tasks.forEach((t,i)=>list.appendChild(createTaskElement(t,i)));
+renderCalendar();
+renderProjects();
+renderProjectSelect();
 }
 
 /* CALENDAR */
 function renderCalendar(){
-    let cal = document.getElementById("calendar");
-    cal.innerHTML="";
+calendarList.innerHTML="";
+let grouped={};
 
-    let grouped = {};
+tasks.forEach(t=>{
+if(!grouped[t.date]) grouped[t.date]=[];
+grouped[t.date].push(t);
+});
 
-    tasks.forEach(t=>{
-        if(!grouped[t.date]) grouped[t.date]=[];
-        grouped[t.date].push(t);
-    });
-
-    for(let date in grouped){
-        cal.innerHTML += `<div class="task"><b>${date}</b></div>`;
-        grouped[date].forEach(t=>{
-            cal.innerHTML += `<div class="task">${t.title}</div>`;
-        });
-    }
+for(let d in grouped){
+calendarList.innerHTML += `<div class="task"><b>${d}</b></div>`;
+grouped[d].forEach(t=>{
+calendarList.innerHTML += `<div class="task">${t.title}</div>`;
+});
+}
 }
 
 /* PROJECTS */
-function addProject(){
-    if(!projectName.value) return;
-    projects.push(projectName.value);
-    localStorage.setItem("projects", JSON.stringify(projects));
-    projectName.value="";
-    renderProjects();
-}
+addProjectBtn.addEventListener("click",()=>{
+if(!newProject.value) return;
+projects.push(newProject.value);
+newProject.value="";
+save();
+render();
+});
 
 function renderProjects(){
-    let list = document.getElementById("projectList");
-    list.innerHTML="";
+projectList.innerHTML="";
+projects.forEach((p,i)=>{
+let div=document.createElement("div");
+div.className="task";
+div.textContent=p;
 
-    projects.forEach((p,i)=>{
-        list.innerHTML += `
-        <div class="task" onclick="deleteProject(${i})">
-            ${p}
-        </div>`;
-    });
+div.addEventListener("click",()=>{
+projects.splice(i,1);
+save();
+render();
+});
+
+projectList.appendChild(div);
+});
 }
 
-function deleteProject(i){
-    if(confirm("Eliminar proyecto?")){
-        projects.splice(i,1);
-        localStorage.setItem("projects", JSON.stringify(projects));
-        renderProjects();
-    }
+function renderProjectSelect(){
+project.innerHTML="";
+projects.forEach(p=>{
+project.innerHTML += `<option>${p}</option>`;
+});
 }
 
-/* INIT */
-renderTasks();
-renderCalendar();
-renderProjects();
+/* SEARCH */
+search.addEventListener("input",()=>{
+let q=search.value.toLowerCase();
+let filtered=tasks.filter(t=>t.title.toLowerCase().includes(q));
+taskList.innerHTML="";
+filtered.forEach((t,i)=>taskList.appendChild(createTaskElement(t,i)));
+});
+
+/* SAVE */
+function save(){
+localStorage.setItem("tasks",JSON.stringify(tasks));
+localStorage.setItem("projects",JSON.stringify(projects));
+}
+
+render();
 </script>
 
 </body>
