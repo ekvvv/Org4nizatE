@@ -1,53 +1,47 @@
-<div class="app">
-    <style>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Pro</title>
+
+<style>
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont;
-    background: #0d0d12;
-    color: white;
+    background: #000;
     display: flex;
     justify-content: center;
 }
 
-/* CONTENEDOR TIPO iPHONE */
+/* CONTENEDOR IPHONE */
 .app {
     width: 100%;
     max-width: 414px;
     min-height: 100vh;
     background: #0d0d12;
-    position: relative;
+    color: white;
 }
 
 /* HEADER */
 .header {
     padding: 20px 16px 10px;
-}
-
-.header h1 {
     font-size: 22px;
-    margin: 0;
+    font-weight: bold;
 }
 
 /* SEARCH */
-.search-box {
-    padding: 0 16px;
-}
-
 .search {
-    width: 100%;
+    margin: 0 16px;
     padding: 12px;
     border-radius: 12px;
     border: none;
+    width: calc(100% - 32px);
     background: #1c1c24;
     color: white;
 }
 
-/* TASK LIST */
-.task-list {
-    margin-top: 10px;
-}
-
-/* CARD */
+/* TASK */
 .task {
     display: flex;
     gap: 12px;
@@ -85,12 +79,9 @@ body {
     color: #aaa;
 }
 
-/* INPUT PANEL */
+/* PANEL */
 .panel {
-    position: sticky;
-    bottom: 60px;
-    background: #0d0d12;
-    padding: 12px 16px;
+    padding: 16px;
 }
 
 .input {
@@ -113,7 +104,7 @@ body {
     font-weight: bold;
 }
 
-/* NAV BAR */
+/* NAV */
 .nav {
     position: fixed;
     bottom: 0;
@@ -128,8 +119,78 @@ body {
 
 .nav div {
     font-size: 12px;
-    text-align: center;
     color: #aaa;
 }
 </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="header">Tareas de hoy</div>
+
+    <input class="search" placeholder="Buscar...">
+
+    <div id="taskList"></div>
+
+    <div class="panel">
+        <input id="title" class="input" placeholder="Título">
+        <input id="desc" class="input" placeholder="Descripción">
+
+        <select id="priority" class="input">
+            <option value="alto">Alta</option>
+            <option value="medio">Media</option>
+            <option value="bajo">Baja</option>
+        </select>
+
+        <button class="btn" onclick="addTask()">Añadir</button>
+    </div>
+
 </div>
+
+<div class="nav">
+    <div>📋</div>
+    <div>📅</div>
+    <div>📦</div>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function addTask() {
+    let t = {
+        title: document.getElementById("title").value,
+        desc: document.getElementById("desc").value,
+        priority: document.getElementById("priority").value
+    };
+
+    if (!t.title) return;
+
+    tasks.push(t);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+}
+
+function renderTasks() {
+    let list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    tasks.forEach((t, i) => {
+        list.innerHTML += `
+        <div class="task">
+            <img src="https://picsum.photos/60?random=${i}">
+            <div class="task-content">
+                <div class="priority ${t.priority}">${t.priority.toUpperCase()}</div>
+                <div class="title">${t.title}</div>
+                <div class="desc">${t.desc}</div>
+            </div>
+        </div>`;
+    });
+}
+
+renderTasks();
+</script>
+
+</body>
+</html>
