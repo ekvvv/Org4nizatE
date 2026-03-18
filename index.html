@@ -1,48 +1,64 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Pro</title>
-
-<style>
+<div class="app">
+    <style>
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont;
-    background: #0a0a0c;
+    background: #0d0d12;
     color: white;
+    display: flex;
+    justify-content: center;
+}
+
+/* CONTENEDOR TIPO iPHONE */
+.app {
+    width: 100%;
+    max-width: 414px;
+    min-height: 100vh;
+    background: #0d0d12;
+    position: relative;
 }
 
 /* HEADER */
 .header {
-    padding: 20px;
-    font-size: 24px;
-    font-weight: bold;
+    padding: 20px 16px 10px;
+}
+
+.header h1 {
+    font-size: 22px;
+    margin: 0;
 }
 
 /* SEARCH */
+.search-box {
+    padding: 0 16px;
+}
+
 .search {
-    margin: 0 15px;
+    width: 100%;
     padding: 12px;
-    border-radius: 14px;
+    border-radius: 12px;
     border: none;
-    width: calc(100% - 30px);
-    background: #1a1a1f;
+    background: #1c1c24;
     color: white;
 }
 
-/* TASK CARD */
+/* TASK LIST */
+.task-list {
+    margin-top: 10px;
+}
+
+/* CARD */
 .task {
     display: flex;
     gap: 12px;
-    padding: 15px;
+    padding: 14px 16px;
     border-bottom: 1px solid #1f1f25;
 }
 
 .task img {
-    width: 55px;
-    height: 55px;
-    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
 }
 
 .task-content {
@@ -52,6 +68,7 @@ body {
 .priority {
     font-size: 11px;
     font-weight: bold;
+    opacity: 0.7;
 }
 
 .alto { color: #ff4d4d; }
@@ -59,8 +76,8 @@ body {
 .bajo { color: #4dff88; }
 
 .title {
-    font-weight: bold;
-    margin-top: 3px;
+    font-size: 15px;
+    font-weight: 600;
 }
 
 .desc {
@@ -70,7 +87,10 @@ body {
 
 /* INPUT PANEL */
 .panel {
-    padding: 15px;
+    position: sticky;
+    bottom: 60px;
+    background: #0d0d12;
+    padding: 12px 16px;
 }
 
 .input {
@@ -79,147 +99,37 @@ body {
     margin-top: 8px;
     border-radius: 12px;
     border: none;
-    background: #1a1a1f;
+    background: #1c1c24;
     color: white;
 }
 
 .btn {
     margin-top: 10px;
-    padding: 12px;
+    padding: 14px;
     width: 100%;
     border-radius: 12px;
     border: none;
-    background: #4da6ff;
+    background: #5aa9ff;
+    font-weight: bold;
 }
 
-/* NAV */
+/* NAV BAR */
 .nav {
     position: fixed;
     bottom: 0;
     width: 100%;
+    max-width: 414px;
     background: #111;
     display: flex;
     justify-content: space-around;
     padding: 10px 0;
+    border-top: 1px solid #222;
 }
 
 .nav div {
     font-size: 12px;
-    cursor: pointer;
+    text-align: center;
+    color: #aaa;
 }
-
-/* SCREENS */
-.screen { display: none; padding-bottom: 80px; }
-.active { display: block; }
-
 </style>
-</head>
-
-<body>
-
-<!-- TAREAS -->
-<div id="tasks" class="screen active">
-    <div class="header">Tareas de hoy</div>
-    <input class="search" placeholder="Buscar...">
-
-    <div id="taskList"></div>
-
-    <div class="panel">
-        <input id="title" class="input" placeholder="Título">
-        <input id="desc" class="input" placeholder="Descripción">
-        <select id="priority" class="input">
-            <option value="alto">Alta</option>
-            <option value="medio">Media</option>
-            <option value="bajo">Baja</option>
-        </select>
-        <button class="btn" onclick="addTask()">Añadir</button>
-    </div>
 </div>
-
-<!-- CALENDARIO -->
-<div id="calendar" class="screen">
-    <div class="header">Calendario</div>
-    <p style="padding:15px;">(Próximamente: tareas por fecha)</p>
-</div>
-
-<!-- PROYECTOS -->
-<div id="projects" class="screen">
-    <div class="header">Proyectos</div>
-    <div class="panel">
-        <input id="projectInput" class="input" placeholder="Nuevo proyecto">
-        <button class="btn" onclick="addProject()">Crear</button>
-        <div id="projectList"></div>
-    </div>
-</div>
-
-<!-- NAV -->
-<div class="nav">
-    <div onclick="show('tasks')">📋</div>
-    <div onclick="show('calendar')">📅</div>
-    <div onclick="show('projects')">📦</div>
-</div>
-
-<script>
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-let projects = JSON.parse(localStorage.getItem("projects")) || [];
-
-function show(id) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-}
-
-function addTask() {
-    let t = {
-        title: document.getElementById("title").value,
-        desc: document.getElementById("desc").value,
-        priority: document.getElementById("priority").value
-    };
-
-    if (!t.title) return;
-
-    tasks.push(t);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    renderTasks();
-}
-
-function renderTasks() {
-    let list = document.getElementById("taskList");
-    list.innerHTML = "";
-
-    tasks.forEach((t, i) => {
-        list.innerHTML += `
-        <div class="task">
-            <img src="https://picsum.photos/60?random=${i}">
-            <div class="task-content">
-                <div class="priority ${t.priority}">${t.priority.toUpperCase()}</div>
-                <div class="title">${t.title}</div>
-                <div class="desc">${t.desc}</div>
-            </div>
-        </div>`;
-    });
-}
-
-function addProject() {
-    let p = document.getElementById("projectInput").value;
-    if (!p) return;
-
-    projects.push(p);
-    localStorage.setItem("projects", JSON.stringify(projects));
-    renderProjects();
-}
-
-function renderProjects() {
-    let list = document.getElementById("projectList");
-    list.innerHTML = "";
-
-    projects.forEach(p => {
-        list.innerHTML += `<div class="task">${p}</div>`;
-    });
-}
-
-renderTasks();
-renderProjects();
-</script>
-
-</body>
-</html>
